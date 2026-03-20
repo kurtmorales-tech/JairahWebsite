@@ -1,14 +1,8 @@
 <div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6](https://github.com/kurtmorales-tech/JairahWebsite/blob/main/public/Dark.jpeg?raw=true)" />
 </div>
 
-# Run and deploy your AI Studio app
-
 This repository contains a complete production-ready demo app for a boutique hair studio. It is optimized for local development and deployment to AI Studio or any static site host.
-
-/home/kmorales/Pictures/Screenshots/Light.jpeg
-
-/home/kmorales/Pictures/Screenshots/Dark.jpeg
 
 ## About this app
 
