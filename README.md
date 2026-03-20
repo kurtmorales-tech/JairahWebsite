@@ -6,7 +6,9 @@
 
 This repository contains a complete production-ready demo app for a boutique hair studio. It is optimized for local development and deployment to AI Studio or any static site host.
 
-View your live app in AI Studio: https://ai.studio/apps/drive/1PJ6tONEMiceIr7NdUqHJJXAti1J7qgF5
+/home/kmorales/Pictures/Screenshots/Light.jpeg
+
+/home/kmorales/Pictures/Screenshots/Dark.jpeg
 
 ## About this app
 
