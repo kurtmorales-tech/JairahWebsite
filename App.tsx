@@ -16,6 +16,8 @@ import { Dashboard } from './components/Dashboard';
 import { LegalModal } from './components/LegalModals';
 import { AuthModal } from './components/AuthModal';
 import { supabase } from './lib/supabase';
+import { StripeProvider } from './components/StripeProvider';
+import { CheckoutForm } from './components/CheckoutForm';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'home' | 'book' | 'gallery' | 'resources' | 'faq' | 'about' | 'consult' | 'admin'>('home');
@@ -52,6 +54,9 @@ const App: React.FC = () => {
   // Newsletter State
   const [newsletterEmail, setNewsletterEmail] = useState("");
   const [newsletterSuccess, setNewsletterSuccess] = useState(false);
+
+  // Stripe State
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
 
   // Read Tracking for terms
   const [readPolicies, setReadPolicies] = useState({ terms: false, privacy: false, refund: false });
@@ -124,6 +129,25 @@ const App: React.FC = () => {
 
   const handlePayment = async (method: 'stripe' | 'paypal') => {
     setIsSubmitting(true);
+    
+    if (method === 'stripe') {
+      try {
+        const { data, error } = await supabase.functions.invoke('create-payment-intent', {
+          body: { serviceId: selectedService?.id, clientEmail: clientInfo.email }
+        });
+
+        if (error) throw error;
+        setClientSecret(data.clientSecret);
+      } catch (err) {
+        console.error("Payment Intent Error", err);
+        alert("Failed to initialize payment. Please try again.");
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
+    }
+
+    // PayPal mock or other logic
     await new Promise(resolve => setTimeout(resolve, 2500));
 
     const newBooking = {
@@ -133,15 +157,34 @@ const App: React.FC = () => {
       clientPhone: clientInfo.phone,
       status: 'CONFIRMED',
       paymentStatus: 'PAID',
-      paymentAmount: 3000, 
+      paymentAmount: selectedService?.price || 3000, 
       serviceId: selectedService?.id || ''
     };
 
-    const { data } = await supabase.from('bookings').insert([newBooking]).select();
-    if (data) setBookings(prev => [data[0], ...prev]);
+    const { data: bkgData } = await supabase.from('bookings').insert([newBooking]).select();
+    if (bkgData) setBookings(prev => [bkgData[0], ...prev]);
 
     setStep(BookingStep.CONFIRMATION);
     setIsSubmitting(false);
+  };
+
+  const handleStripeSuccess = async () => {
+    const newBooking = {
+      date: bookingDate,
+      clientName: clientInfo.name,
+      clientEmail: clientInfo.email,
+      clientPhone: clientInfo.phone,
+      status: 'CONFIRMED',
+      paymentStatus: 'PAID',
+      paymentAmount: selectedService?.price || 3000,
+      serviceId: selectedService?.id || ''
+    };
+
+    const { data: bkgData } = await supabase.from('bookings').insert([newBooking]).select();
+    if (bkgData) setBookings(prev => [bkgData[0], ...prev]);
+    
+    setClientSecret(null);
+    setStep(BookingStep.CONFIRMATION);
   };
 
   const toggleDarkMode = () => setDarkMode(!darkMode);
@@ -795,45 +838,75 @@ const App: React.FC = () => {
                 {step === BookingStep.PAYMENT && (
                   <motion.div key="4" className="space-y-8">
                     <GlassCard className="text-center space-y-8 p-12">
-                      <div className="space-y-4">
-                         <div className="w-16 h-16 bg-braid-primary/10 rounded-full flex items-center justify-center mx-auto text-braid-primary">
-                           <ShieldCheck size={32} />
-                         </div>
-                         <h3 className="text-3xl font-serif italic">Secure Protocol Deposit</h3>
-                         <p className="text-braid-muted text-sm uppercase tracking-widest">A $30.00 non-refundable investment is required</p>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <button onClick={() => agreedToTerms && handlePayment('stripe')} disabled={!agreedToTerms || isSubmitting} className="w-full bg-[#635BFF] text-white py-4 rounded-full flex items-center justify-center gap-3 font-bold hover:brightness-110 transition-all disabled:opacity-50">
-                          <CreditCard size={18} /> Stripe
-                        </button>
-                        <button onClick={() => agreedToTerms && handlePayment('paypal')} disabled={!agreedToTerms || isSubmitting} className="w-full bg-[#FFC439] text-[#003087] py-4 rounded-full flex items-center justify-center gap-3 font-bold hover:brightness-110 transition-all disabled:opacity-50">
-                           PayPal
-                        </button>
-                      </div>
+                      <AnimatePresence mode="wait">
+                        {!clientSecret ? (
+                          <motion.div 
+                            key="method-select"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            className="space-y-8"
+                          >
+                            <div className="space-y-4">
+                               <div className="w-16 h-16 bg-braid-primary/10 rounded-full flex items-center justify-center mx-auto text-braid-primary">
+                                 <ShieldCheck size={32} />
+                               </div>
+                               <h3 className="text-3xl font-serif italic">Secure Protocol Deposit</h3>
+                               <p className="text-braid-muted text-sm uppercase tracking-widest">
+                                 A ${(selectedService?.price || 3000) / 100}.00 non-refundable investment is required
+                               </p>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <button onClick={() => agreedToTerms && handlePayment('stripe')} disabled={!agreedToTerms || isSubmitting} className="w-full bg-[#635BFF] text-white py-4 rounded-full flex items-center justify-center gap-3 font-bold hover:brightness-110 transition-all disabled:opacity-50">
+                                {isSubmitting ? 'Preparing...' : <><CreditCard size={18} /> Stripe</>}
+                              </button>
+                              <button onClick={() => agreedToTerms && handlePayment('paypal')} disabled={!agreedToTerms || isSubmitting} className="w-full bg-[#FFC439] text-[#003087] py-4 rounded-full flex items-center justify-center gap-3 font-bold hover:brightness-110 transition-all disabled:opacity-50">
+                                 PayPal
+                              </button>
+                            </div>
 
-                      <div className={`flex flex-col items-start gap-3 text-left p-6 rounded-[2rem] border transition-all duration-300 ${allPoliciesRead ? 'bg-braid-bg/50 dark:bg-black/20 border-braid-primary/20' : 'bg-braid-primary/5 border-dashed border-braid-primary/10 grayscale opacity-60'}`}>
-                        <div className="flex items-start gap-4 w-full">
-                          <input 
-                            type="checkbox" 
-                            id="terms-check" 
-                            checked={agreedToTerms} 
-                            disabled={!allPoliciesRead}
-                            onChange={e => setAgreedToTerms(e.target.checked)} 
-                            className="mt-1 accent-braid-primary w-5 h-5 rounded cursor-pointer" 
-                          />
-                          <label htmlFor="terms-check" className={`text-xs leading-relaxed transition-colors ${allPoliciesRead ? 'text-braid-muted' : 'text-braid-muted/50 cursor-not-allowed'}`}>
-                            I agree to the <button type="button" onClick={() => { setReadPolicies(p=>({...p, terms:true})); setLegalModal({ open: true, type: 'terms' })}} className="font-bold underline text-braid-primary">Terms</button>, 
-                            <button type="button" onClick={() => { setReadPolicies(p=>({...p, privacy:true})); setLegalModal({ open: true, type: 'privacy' })}} className="font-bold underline text-braid-primary"> Privacy Policy</button>, and acknowledge that my $30.00 deposit is 
-                            <button type="button" onClick={() => { setReadPolicies(p=>({...p, refund:true})); setLegalModal({ open: true, type: 'refund' })}} className="font-bold underline text-braid-primary"> 100% Non-Refundable</button>.
-                          </label>
-                        </div>
-                        {!allPoliciesRead && (
-                          <div className="flex items-center gap-2 text-[9px] text-braid-primary font-bold uppercase tracking-widest mt-2">
-                            <AlertCircle size={12} /> Please review all policy links to enable
-                          </div>
+                            <div className={`flex flex-col items-start gap-3 text-left p-6 rounded-[2rem] border transition-all duration-300 ${allPoliciesRead ? 'bg-braid-bg/50 dark:bg-black/20 border-braid-primary/20' : 'bg-braid-primary/5 border-dashed border-braid-primary/10 grayscale opacity-60'}`}>
+                              <div className="flex items-start gap-4 w-full">
+                                <input 
+                                  type="checkbox" 
+                                  id="terms-check" 
+                                  checked={agreedToTerms} 
+                                  disabled={!allPoliciesRead}
+                                  onChange={e => setAgreedToTerms(e.target.checked)} 
+                                  className="mt-1 accent-braid-primary w-5 h-5 rounded cursor-pointer" 
+                                />
+                                <label htmlFor="terms-check" className={`text-xs leading-relaxed transition-colors ${allPoliciesRead ? 'text-braid-muted' : 'text-braid-muted/50 cursor-not-allowed'}`}>
+                                  I agree to the <button type="button" onClick={() => { setReadPolicies(p=>({...p, terms:true})); setLegalModal({ open: true, type: 'terms' })}} className="font-bold underline text-braid-primary">Terms</button>, 
+                                  <button type="button" onClick={() => { setReadPolicies(p=>({...p, privacy:true})); setLegalModal({ open: true, type: 'privacy' })}} className="font-bold underline text-braid-primary"> Privacy Policy</button>, and acknowledge that my deposit is 
+                                  <button type="button" onClick={() => { setReadPolicies(p=>({...p, refund:true})); setLegalModal({ open: true, type: 'refund' })}} className="font-bold underline text-braid-primary"> 100% Non-Refundable</button>.
+                                </label>
+                              </div>
+                              {!allPoliciesRead && (
+                                <div className="flex items-center gap-2 text-[9px] text-braid-primary font-bold uppercase tracking-widest mt-2">
+                                  <AlertCircle size={12} /> Please review all policy links to enable
+                                </div>
+                              )}
+                            </div>
+                          </motion.div>
+                        ) : (
+                          <motion.div 
+                            key="stripe-form"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            className="space-y-6"
+                          >
+                            <StripeProvider clientSecret={clientSecret}>
+                              <CheckoutForm 
+                                amount={selectedService?.price || 3000} 
+                                onSuccess={handleStripeSuccess}
+                                onCancel={() => setClientSecret(null)}
+                              />
+                            </StripeProvider>
+                          </motion.div>
                         )}
-                      </div>
+                      </AnimatePresence>
                     </GlassCard>
                   </motion.div>
                 )}

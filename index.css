@@ -1,0 +1,79 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Inter:wght@300;400;500;600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-braid-bg: #FDFBF7;
+  --color-braid-panel: #FFFFFF;
+  --color-braid-primary: #B48B5E;
+  --color-braid-secondary: #D4A5A5;
+  --color-braid-accent: #5C524F;
+  --color-braid-text: #2D241E;
+  --color-braid-muted: #9A8F85;
+  --color-braid-light: #F5EFED;
+  
+  /* These are for manual use like dark:bg-braid-dark-bg */
+  --color-braid-dark-bg: #12100E;
+  --color-braid-dark-panel: #1C1816;
+  --color-braid-dark-text: #E8E2DE;
+  --color-braid-dark-muted: #7A6F66;
+
+  --background-image-glass: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.7) 100%);
+  --background-image-glass-dark: linear-gradient(145deg, rgba(28, 24, 22, 0.95) 0%, rgba(18, 16, 14, 0.8) 100%);
+
+  --shadow-soft: 0 10px 40px -10px rgba(180, 139, 94, 0.1);
+  --shadow-soft-dark: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
+  --shadow-embossed: inset 2px 2px 5px rgba(255,255,255,0.8), inset -2px -2px 5px rgba(0,0,0,0.05);
+  --shadow-embossed-dark: inset 2px 2px 5px rgba(255,255,255,0.05), inset -2px -2px 5px rgba(0,0,0,0.4);
+  --shadow-gold-glow: 0 0 25px -5px rgba(180, 139, 94, 0.2);
+  --shadow-gold-glow-dark: 0 0 25px -5px rgba(180, 139, 94, 0.4);
+
+  --font-serif: "Playfair Display", serif;
+  --font-sans: "Inter", sans-serif;
+}
+
+/* Ensure Tailwind 4 dark mode variant works with the .dark class */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  body {
+    @apply font-sans bg-braid-bg text-braid-text antialiased;
+    transition: background-color 0.7s ease-in-out, color 0.7s ease-in-out;
+  }
+
+  .dark body {
+    @apply bg-braid-dark-bg text-braid-dark-text;
+  }
+
+  h1, h2, h3, h4, .font-serif {
+    @apply font-serif;
+  }
+}
+
+@layer components {
+  .bg-dots {
+    background-image: radial-gradient(#B48B5E 0.5px, transparent 0.5px);
+    background-size: 32px 32px;
+    opacity: 0.03;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-braid-bg;
+  }
+  .dark ::-webkit-scrollbar-track {
+    @apply bg-braid-dark-bg;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-braid-secondary rounded-full;
+  }
+  .dark ::-webkit-scrollbar-thumb {
+    @apply bg-braid-primary;
+  }
+}

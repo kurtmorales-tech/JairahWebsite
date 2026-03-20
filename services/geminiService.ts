@@ -1,8 +1,12 @@
-
 import { GoogleGenAI } from "@google/genai";
 
-// Fixed: Correctly initialize GoogleGenAI with a named parameter and direct process.env.API_KEY access
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+
+if (!apiKey) {
+  console.warn("VITE_GEMINI_API_KEY is not set. Consultant will be disabled.");
+}
+
+const ai = apiKey ? new GoogleGenAI(apiKey) : null;
 
 export const getStylingAdvice = async (prompt: string, history: any[] = []) => {
   try {

@@ -1,5 +1,5 @@
 <div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/kurtmorales-tech/JairahWebsite/blob/main/public/Dark.jpeg?raw=true" />
+<img width="1200" height="475" alt="GHBanner" src="https://github.com/kurtmorales-tech/JairahWebsite/blob/560ef41e72683769c01165510bdf112b15ba0755/public/Dark.jpeg" />
 </div>
 
 This repository contains a complete production-ready demo app for a boutique hair studio. It is optimized for local development and deployment to AI Studio or any static site host.
@@ -8,8 +8,8 @@ This repository contains a complete production-ready demo app for a boutique hai
 
 "Braids by Jaira" is a boutique luxury hair styling web experience built as a React + Vite application. It offers an immersive client journey including:
 
-- Professional service portfolio (Knotless Braids, Boho Goddess Locs, Stitch Braids, Fulani Braids). 
-- Booking workflow with service selection, date confirmation, client info, terms acknowledgment, and payment simulation (Stripe/PayPal). 
+- Professional service portfolio (Knotless Braids, Boho Goddess Locs, Stitch Braids, Fulani Braids).
+- Booking workflow with service selection, date confirmation, client info, terms acknowledgment, and payment simulation (Stripe/PayPal).
 - Live gallery, case-study blog posts, reviews, and curated FAQ content.
 - AI-powered digital hairstylist consult via Gemini API (`services/geminiService.ts`).
 - Admin dashboard with Supabase auth for managing services, bookings, and data refresh.
@@ -25,6 +25,7 @@ This repository contains a complete production-ready demo app for a boutique hai
 ### Environment variables
 
 Requires `.env.local` with:
+
 - `GEMINI_API_KEY` (Gemini model calls in `services/geminiService.ts`)
 - `SUPABASE_URL` (optional fallback uses placeholder)
 - `SUPABASE_ANON_KEY` (optional fallback uses placeholder)
@@ -32,6 +33,7 @@ Requires `.env.local` with:
 ## Quick Start (Local)
 
 **Prerequisites**
+
 - Node.js 18+ (or latest LTS)
 - Git (optional)
 
